@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private ArrayList<ItemImage> list= new ArrayList();
     private ImageAdapter adapter;
+    private ImageAdapter adapterStack;
     private StackImages stackImages = StackImages.getInstance();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,15 +32,31 @@ public class MainActivity extends AppCompatActivity {
         list.add(new ItemImage(5, R.drawable.img_5));
         stackImages.setSize(list.size());
         setupRecyclerView();
+        setupRecyclerViewStack();
         binding.cardUndo.setOnClickListener(v -> {
             ItemImage data = stackImages.pop();
             if(data!=null){
-                Log.d("TAG", "setupRecyclerView: " + data);
+                Log.d("TAG", "sau khi pop thanh cong");
+                stackImages.showStackImage();
                 adapter.insertData(data);
+                adapterStack.setData(stackImages.getStackList());
             }else{
                 Snackbar.make(binding.getRoot(),"No Image Deleted ~",Snackbar.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        stackImages.showStackImage();
+        super.onResume();
+    }
+
+    private void setupRecyclerViewStack(){
+        adapterStack = new ImageAdapter();
+        adapterStack.setData(stackImages.getStackList());
+        binding.recyclerViewStack.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        binding.recyclerViewStack.setAdapter(adapterStack);
     }
 
     private void setupRecyclerView() {
@@ -50,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
         adapter.setListener((item,pos) -> {
             item.setId(pos);
           if(stackImages.push(item)){
+              Log.d("TAG", "setupRecyclerView: Sau khi push thanh cong");
+              stackImages.showStackImage();
+              adapterStack.setData(stackImages.getStackList());
               adapter.deleteData(item.getId());
               Snackbar.make(binding.getRoot(),"Successfully deleted ~",Snackbar.LENGTH_LONG).show();
           }else{
